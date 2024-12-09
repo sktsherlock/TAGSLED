@@ -11,7 +11,7 @@ import warnings
 
 transformers.logging.set_verbosity(40)
 
-
+##:ww
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-name", type=str, default="meta-llama/Llama-2-7b-hf")
@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
 
 
-
+    the_bug = []
     answers = []
     result_dict = {'is_correct': [], 'model_answer': [], 'model_completion': [], 'full_input_text': []}
 
