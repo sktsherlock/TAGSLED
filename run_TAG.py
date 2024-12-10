@@ -66,7 +66,7 @@ if __name__ == "__main__":
         # 获取 prompt 和正确类别
         prompt = sample['prompt']
         correct_category = sample['correct_category']
-        false_categories = eval(sample['false_categories'])  # 将字符串解析为列表
+        false_categories = sample['false_categories']
         answers_false = [f" {false_cat}" for false_cat in false_categories]
 
 
