@@ -5,7 +5,7 @@
 import transformers
 from tqdm import tqdm, trange
 import argparse
-from utils.utils_factor import *
+from utils.utils_TAG import *
 from sled_decoding import SLED_DecodedLLM_Factor as SLED_DecodedLLM
 import json
 import warnings
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     num_gpus = args.num_gpus
     device = args.device
 
-    list_data_dict = load_factor_dataset(args.data_path)
+    list_data_dict = load_TAG_dataset(args.data_path)
 
     llm = SLED_DecodedLLM(model_name, device, num_gpus, args.max_gpu_memory)
     llm.set_stop_words(["Q:", "\end{code}"])
@@ -63,35 +63,43 @@ if __name__ == "__main__":
     result_dict = {'is_correct': [], 'model_answer': [], 'model_completion': [], 'full_input_text': []}
 
     for sample in tqdm(list_data_dict):
-        context = sample['prefix']
-        answer_true = ' ' + sample['completion']
-        answers_false = []
-        for i in range(3):
-            answers_false.append(' ' + sample[f'contradiction_{i}'])
+        # 获取 prompt 和正确类别
+        prompt = sample['prompt']
+        correct_category = sample['correct_category']
+        false_categories = eval(sample['false_categories'])  # 将字符串解析为列表
+        answers_false = [f" {false_cat}" for false_cat in false_categories]
+
+
         generate_kwargs = dict(do_sample=args.do_sample, mode=args.decoding_method, mature_layer=mature_layer,
                                candidate_premature_layers=candidate_premature_layers, post_softmax=True,
                                relative_top=args.relative_top, relative_top_value=args.relative_top_value,
                                evolution_rate=args.evolution_rate, evolution_scale=args.evolution_scale)
-        answer_true_log_prob, c_dist = llm.lm_score(context, answer_true, **generate_kwargs)
 
-        answer_false_log_probs = []
+        # 计算正确答案的 log_prob
+        correct_category_with_space = f" {correct_category}"
+        correct_log_prob, c_dist = llm.lm_score(prompt, correct_category_with_space, **generate_kwargs)
+        # answer_true_log_prob, c_dist = llm.lm_score(context, answer_true, **generate_kwargs)
+
+        # 计算错误答案的 log_prob
+        false_log_probs = []
         for answer_false in answers_false:
-            answer_false_log_prob, c_dist = llm.lm_score(context, answer_false, **generate_kwargs)
+            false_log_prob, c_dist = llm.lm_score(prompt, answer_false, **generate_kwargs)
+            false_log_probs.append(false_log_prob)
 
-            answer_false_log_probs.append(answer_false_log_prob)
 
-        is_cor = True
+        # 判断正确性：正确答案的 log_prob 应高于所有错误答案
+        is_cor = all(correct_log_prob > false_log_prob for false_log_prob in false_log_probs)
 
-        for answer_false_log_prob in answer_false_log_probs:
-            if answer_true_log_prob < answer_false_log_prob:
-                is_cor = False
-                break
-
+        # 记录结果
         answers.append(is_cor)
         result_dict['is_correct'].append(is_cor)
-        result_dict['model_completion'].append([answer_true_log_prob] + answer_false_log_probs)
+        result_dict['model_answer'].append(
+            correct_category if is_cor else false_categories[false_log_probs.index(max(false_log_probs))])
+        result_dict['model_completion'].append([correct_log_prob] + false_log_probs)
+        result_dict['full_input_text'].append(prompt)
 
-    print(f'Num of total question: {len(answers)}, '
+    # 输出结果
+    print(f'Num of total questions: {len(answers)}, '
           f'correct num: {sum(answers)}, '
           f'correct rate: {float(sum(answers)) / len(answers)}.')
 
