@@ -29,34 +29,34 @@ def load_TAG_dataset(file_path):
 
 
 def load_csv(file_path):
-    # Format of each line:
-    # {'instruction': ..., 'input': ..., 'output':...}
-    '''
-    Data format:
+    """
+    Data format for Children dataset:
+    prompt,raw_text,correct_category,false_categories,node_id,neighbour
+    Example row:
+    "Your task is to classify the given text into one of the following categories: ...",
+    "Description: Collection of Poetry; Title: The golden treasury of poetry",
+    "Literature & Fiction",
+    "['Animals', 'Growing Up & Facts of Life', ...]",
+    0,
+    "[5472, 14293, 15164, 26542, 33933]"
+    """
+    import pandas as pd
+    import ast
 
-    ,full_prefix,doc_id,completion,contradiction_0,contradiction_1,contradiction_2,longest_completions,turncated_prefixes
-    0,"As streaming television services continue to gain market share, there are a number of reasons why Netflix might be in trouble. Time Warner is taking its HBO content online, Amazon offers premium content for a monthly fee, and Hulu has reached nine million users. While these competitors may cause a bit of worry, it’s not the end of the world. Although Netflix has a huge amount of potential, the increased competition is unlikely to hurt its profitability.
-    While the global pandemic last year caused a major shakeup in Hollywood, Netflix should not rest on its laurels. With a variety of rivals on the rise, it’s unlikely that it can continue to rely on its current performance. Despite the competition, the company has made a number of impactful moves across the board, including clamping down on password sharing. And in the coming years, Netflix should continue to grow and compete with new competitors.
-    With more competitors entering the streaming space, Netflix is likely to face a more difficult time keeping its current market share. Disney has been investing heavily in the service and Amazon is expected to do the same. Both companies expect to add 35-40 million subscribers per year through 2024. Despite the competition, Netflix still remains the top streaming service. Its lack of original content has hurt its numbers in the last few quarters. Its only big original hit in the US was Cobra Kai, which only got four seasons. ",0,Whether or not it gets a second season of The Witcher is another question.,Whether or not it gets a second season of Stranger Things is another question.,Whether or not it gets a fifth season of The Witcher is another question.,Whether or not it gets a second season of Black Mirror is another question.,15.0,"As streaming television services continue to gain market share, there are a number of reasons why Netflix might be in trouble. Time Warner is taking its HBO content online, Amazon offers premium content for a monthly fee, and Hulu has reached nine million users. While these competitors may cause a bit of worry, it’s not the end of the world. Although Netflix has a huge amount of potential, the increased competition is unlikely to hurt its profitability.
-    While the global pandemic last year caused a major shakeup in Hollywood, Netflix should not rest on its laurels. With a variety of rivals on the rise, it’s unlikely that it can continue to rely on its current performance. Despite the competition, the company has made a number of impactful moves across the board, including clamping down on password sharing. And in the coming years, Netflix should continue to grow and compete with new competitors.
-    With more competitors entering the streaming space, Netflix is likely to face a more difficult time keeping its current market share. Disney has been investing heavily in the service and Amazon is expected to do the same. Both companies expect to add 35-40 million subscribers per year through 2024. Despite the competition, Netflix still remains the top streaming service. Its lack of original content has hurt its numbers in the last few quarters. Its only big original hit in the US was Cobra Kai, which only got four seasons. "
-
-    '''
     list_data_dict = []
     df = pd.read_csv(file_path)
-    if 'news' in file_path:
-        prefix_type = 'full_prefix'
-    else:
-        prefix_type = 'turncated_prefixes'
+
     for idx in range(len(df)):
-        item = dict(
-            prefix=df[prefix_type][idx],
-            completion=df['completion'][idx],
-            contradiction_0=df['contradiction_0'][idx],
-            contradiction_1=df['contradiction_1'][idx],
-            contradiction_2=df['contradiction_2'][idx],
-        )
+        item = {
+            "prompt": df["prompt"][idx],
+            "raw_text": df["raw_text"][idx],
+            "correct_category": df["correct_category"][idx],
+            "false_categories": ast.literal_eval(df["false_categories"][idx]),
+            "node_id": df["node_id"][idx],
+            "neighbour": ast.literal_eval(df["neighbour"][idx])
+        }
         list_data_dict.append(item)
+
     return list_data_dict
 
 def download_url(url: str, folder='folder'):

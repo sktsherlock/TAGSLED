@@ -3,7 +3,7 @@ import random
 import json
 
 # 假设您的数据集存储在一个 CSV 文件中，并且已经加载到 DataFrame 中
-df = pd.read_csv('Children.csv')
+df = pd.read_csv('Children_QA.csv')
 
 # 假设我们有一个完整的类别列表（可以从数据集中提取或预定义）
 categories = df['category'].unique()
