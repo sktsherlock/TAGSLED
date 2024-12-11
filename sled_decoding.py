@@ -591,12 +591,13 @@ class SLED_DecodedLLM_GSM8K:
 
 
 class SLED_DecodedLLM_StrQA:
-    def __init__(self, model_name, device, num_gpus, max_gpu_memory=27):
+    def __init__(self, model_name, device, num_gpus, max_gpu_memory=27, max_new_tokens=256):
         self.model_name = model_name
         self.device = device
         self.num_gpus = num_gpus
         self.stopping_criteria = None
         self.max_gpu_memory = max_gpu_memory
+        self.max_new_tokens = max_new_tokens
 
         self.model, self.tokenizer = self.load_model(model_name)
         self.num_layers = self.model.config.num_hidden_layers if hasattr(self.model.config,
@@ -646,14 +647,14 @@ class SLED_DecodedLLM_StrQA:
             print("Added stop word: ", stop_word, 'with the ids', stop_word_ids, flush=True)
         self.stopping_criteria.append(LLamaQaStoppingCriteria(list_stop_word_ids))
 
-    def generate(self, input_text, max_new_tokens=256, top_p=0.95, top_k=0, temperature=0.8, mature_layer=None,
+    def generate(self, input_text, top_p=0.95, top_k=0, temperature=0.8, mature_layer=None,
                  premature_layer=None, candidate_premature_layers=[], mode='VanillaGreedy', verbose=True,
                  remove_stop_words=False, relative_top=0.1, relative_top_value=-1000.0, post_softmax=True,
                  evolution_rate=2, evolution_scale=10, evolution_lower_bound=-1000, **kwargs):
         with torch.no_grad():
 
             input_ids = self.tokenizer(input_text, return_tensors="pt").input_ids.to(self.device)
-            max_len = input_ids.shape[-1] + max_new_tokens
+            max_len = input_ids.shape[-1] + self.max_new_tokens
 
             if mode == 'VanillaGreedy':
                 outputs = self.model.generate(input_ids, max_length=max_len, num_return_sequences=1,

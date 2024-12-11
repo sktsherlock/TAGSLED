@@ -17,6 +17,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-name", type=str, default="meta-llama/Llama-2-7b-hf")
     parser.add_argument("--num-gpus", type=str, default="1")
+    parser.add_argument("--num-samples", type=int, default=500)
     parser.add_argument("--max_gpu_memory", type=int, default=80)
     parser.add_argument("--device", type=str, choices=["cuda", "cpu"], default="cuda")
     parser.add_argument("--data-path", type=str, default="Data/TAG/Children/Children.csv")
@@ -35,9 +36,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     model_name = args.model_name
     num_gpus = args.num_gpus
+    num_samples = args.num_samples
     device = args.device
 
-    list_data_dict = load_TAG_dataset(args.data_path)
+    list_data_dict = load_TAG_dataset(args.data_path, num_samples)
 
     llm = SLED_DecodedLLM(model_name, device, num_gpus, args.max_gpu_memory)
     llm.set_stop_words(["Q:", "\end{code}"])

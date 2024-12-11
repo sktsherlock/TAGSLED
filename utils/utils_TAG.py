@@ -20,15 +20,15 @@ ANSWER_TRIGGER = "The answer is"
 
 
 
-def load_TAG_dataset(file_path):
+def load_TAG_dataset(file_path, num_samples=None):
 
     if not os.path.exists(file_path):
         raise ValueError(f"Test file {file_path} does not exist.")
 
-    return load_csv(file_path)
+    return load_csv(file_path, num_samples)
 
 
-def load_csv(file_path):
+def load_csv(file_path, num_samples):
     """
     Data format for Children dataset:
     prompt,raw_text,correct_category,false_categories,node_id,neighbour
@@ -43,9 +43,15 @@ def load_csv(file_path):
     import pandas as pd
     import ast
 
-    list_data_dict = []
+    # Read the CSV file
     df = pd.read_csv(file_path)
 
+    # If num_samples is specified, limit the number of rows
+    if num_samples is not None:
+        df = df.head(num_samples)
+
+    # Convert the data into the desired format
+    list_data_dict = []
     for idx in range(len(df)):
         item = {
             "prompt": df["prompt"][idx],
