@@ -3,6 +3,7 @@ import random
 import json
 import argparse
 import os
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # 创建解析器
 parser = argparse.ArgumentParser(description="Process dataset for LLM.")
@@ -19,6 +20,9 @@ args = parser.parse_args()
 input_dir, input_file = os.path.split(args.dataset)
 file_name, file_ext = os.path.splitext(input_file)
 output_file = os.path.join(input_dir, f"{file_name}_LLM{file_ext}")
+
+# 加载分词器
+tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf")
 
 # 加载数据集
 df = pd.read_csv(args.dataset)
@@ -37,6 +41,7 @@ categories_str = ", ".join(categories)
 
 # 创建新的数据框架用于存储每个样本的相关信息
 new_data = []
+lengths = []
 
 # 遍历每一行数据，生成适合生成式文本分类的数据格式
 # 构建每个样本的 prompt，并将其添加到新数据结构中
@@ -55,6 +60,9 @@ for _, row in df.iterrows():
     This item likely belongs to:
     """
 
+    tokenized_length = len(tokenizer.tokenize(prompt))
+    lengths.append(tokenized_length)
+
     # 将新的信息添加到数据集
     new_entry = {
         'prompt': prompt,
@@ -71,6 +79,37 @@ for _, row in df.iterrows():
 
     new_data.append(new_entry)
 
+
+# 计算统计信息
+length_stats = {
+    "min": np.min(lengths),
+    "max": np.max(lengths),
+    "mean": np.mean(lengths),
+    "std": np.std(lengths),
+    "25%": np.percentile(lengths, 25),
+    "50% (median)": np.percentile(lengths, 50),
+    "75%": np.percentile(lengths, 75),
+}
+
+# 写入统计信息到文本文件
+with open(stats_file, 'w') as f:
+    f.write(f"Prompt Tokenized Length Statistics:\n")
+    f.write(f"Minimum Tokenized Length: {min_length}\n")
+    f.write(f"Maximum Tokenized Length: {max_length}\n")
+    f.write(f"Average Tokenized Length: {avg_length:.2f}\n")
+
+
+# 写入统计信息到文本文件
+with open(stats_file, 'w') as f:
+    f.write("Prompt Tokenized Length Statistics:\n")
+    for stat, value in length_stats.items():
+        f.write(f"{stat}: {value:.2f}\n")
+
+# 输出统计信息到控制台
+print("Statistics of tokenized lengths:")
+for stat, value in length_stats.items():
+    print(f"{stat}: {value:.2f}")
+
 # 将新的数据框架转化为 Pandas DataFrame
 new_df = pd.DataFrame(new_data)
 
@@ -81,4 +120,4 @@ print(new_df.head())
 new_df.to_csv(output_file, index=False)
 
 print(f"Data conversion complete! Output saved to {output_file}")
-
+print(f"Statistics saved to {stats_file}")
