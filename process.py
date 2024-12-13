@@ -2,6 +2,7 @@ import pandas as pd
 import random
 import json
 import argparse
+import numpy as np
 import os
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
@@ -9,9 +10,12 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 parser = argparse.ArgumentParser(description="Process dataset for LLM.")
 parser.add_argument('--dataset', type=str, required=True, help="Path to the dataset CSV file.")
 parser.add_argument('--text_column', type=str, default='text', help="Name of the column containing the text.")
-parser.add_argument('--category_column', type=str, default='category', help="Name of the column containing the categories.")
-parser.add_argument('--node_id_column', type=str, required=False, default='node_id', help="Name of the column containing the node ID.")
-parser.add_argument('--neighbour_column', type=str, required=False, default='neighbour', help="Name of the column containing neighbours.")
+parser.add_argument('--category_column', type=str, default='category',
+                    help="Name of the column containing the categories.")
+parser.add_argument('--node_id_column', type=str, required=False, default='node_id',
+                    help="Name of the column containing the node ID.")
+parser.add_argument('--neighbour_column', type=str, required=False, default='neighbour',
+                    help="Name of the column containing neighbours.")
 
 # 解析参数
 args = parser.parse_args()
@@ -37,7 +41,6 @@ for category in categories:
 
 # 创建一个任务相关的 prompt
 categories_str = ", ".join(categories)
-
 
 # 创建新的数据框架用于存储每个样本的相关信息
 new_data = []
@@ -79,7 +82,6 @@ for _, row in df.iterrows():
 
     new_data.append(new_entry)
 
-
 # 计算统计信息
 length_stats = {
     "min": np.min(lengths),
@@ -97,7 +99,6 @@ with open(stats_file, 'w') as f:
     f.write(f"Minimum Tokenized Length: {min_length}\n")
     f.write(f"Maximum Tokenized Length: {max_length}\n")
     f.write(f"Average Tokenized Length: {avg_length:.2f}\n")
-
 
 # 写入统计信息到文本文件
 with open(stats_file, 'w') as f:
