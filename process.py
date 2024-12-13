@@ -24,6 +24,7 @@ args = parser.parse_args()
 input_dir, input_file = os.path.split(args.dataset)
 file_name, file_ext = os.path.splitext(input_file)
 output_file = os.path.join(input_dir, f"{file_name}_LLM{file_ext}")
+stats_file = os.path.join(input_dir, f"{file_name}_stats.txt")
 
 # 加载分词器
 tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf")
@@ -44,7 +45,7 @@ categories_str = ", ".join(categories)
 
 # 创建新的数据框架用于存储每个样本的相关信息
 new_data = []
-lengths = []
+prompts = []
 
 # 遍历每一行数据，生成适合生成式文本分类的数据格式
 # 构建每个样本的 prompt，并将其添加到新数据结构中
@@ -63,8 +64,7 @@ for _, row in df.iterrows():
     This item likely belongs to:
     """
 
-    tokenized_length = len(tokenizer.tokenize(prompt))
-    lengths.append(tokenized_length)
+    prompts.append(prompt)
 
     # 将新的信息添加到数据集
     new_entry = {
@@ -82,23 +82,21 @@ for _, row in df.iterrows():
 
     new_data.append(new_entry)
 
+
+# 使用分词器批量统计分词长度（使用 GPU 加速）
+batch_encoded = tokenizer(prompts, add_special_tokens=False, truncation=False, return_tensors="pt", padding=True).to(device)
+tokenized_lengths = batch_encoded.input_ids.ne(tokenizer.pad_token_id).sum(dim=1).tolist()
+
 # 计算统计信息
 length_stats = {
-    "min": np.min(lengths),
-    "max": np.max(lengths),
-    "mean": np.mean(lengths),
-    "std": np.std(lengths),
-    "25%": np.percentile(lengths, 25),
-    "50% (median)": np.percentile(lengths, 50),
-    "75%": np.percentile(lengths, 75),
+    "min": np.min(tokenized_lengths),
+    "max": np.max(tokenized_lengths),
+    "mean": np.mean(tokenized_lengths),
+    "std": np.std(tokenized_lengths),
+    "25%": np.percentile(tokenized_lengths, 25),
+    "50% (median)": np.percentile(tokenized_lengths, 50),
+    "75%": np.percentile(tokenized_lengths, 75),
 }
-
-# 写入统计信息到文本文件
-with open(stats_file, 'w') as f:
-    f.write(f"Prompt Tokenized Length Statistics:\n")
-    f.write(f"Minimum Tokenized Length: {min_length}\n")
-    f.write(f"Maximum Tokenized Length: {max_length}\n")
-    f.write(f"Average Tokenized Length: {avg_length:.2f}\n")
 
 # 写入统计信息到文本文件
 with open(stats_file, 'w') as f:
