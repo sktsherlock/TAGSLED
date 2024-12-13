@@ -85,10 +85,6 @@ for _, row in df.iterrows():
     new_data.append(new_entry)
 
 
-# 使用分词器批量统计分词长度（使用 GPU 加速）
-batch_encoded = tokenizer(prompts, add_special_tokens=False, truncation=False, return_tensors="pt", padding=True).to(device)
-tokenized_lengths = batch_encoded.input_ids.ne(tokenizer.pad_token_id).sum(dim=1).tolist()
-
 # 计算统计信息
 length_stats = {
     "min": np.min(tokenized_lengths),
