@@ -12,7 +12,6 @@ import warnings
 
 transformers.logging.set_verbosity(40)
 
-##:ww
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-name", type=str, default="meta-llama/Llama-2-7b-hf")

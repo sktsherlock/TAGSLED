@@ -264,7 +264,7 @@ class SLED_DecodedLLM_Factor:
         else:
             raise ValueError(f"Invalid device: {self.device}")
 
-        tokenizer = AutoTokenizer.from_pretrained(model_name if not 'vicuna' in model_name else 'huggyllama/llama-7b')
+        tokenizer = AutoTokenizer.from_pretrained(model_name if not 'vicuna' in model_name else model_name)
         model = AutoModelForCausalLM.from_pretrained(model_name,
                                                      low_cpu_mem_usage=True, **kwargs)
 
