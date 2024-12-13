@@ -58,9 +58,13 @@ def load_csv(file_path, num_samples):
             "raw_text": df["raw_text"][idx],
             "correct_category": df["correct_category"][idx],
             "false_categories": ast.literal_eval(df["false_categories"][idx]),
-            # "node_id": df["node_id"][idx],
-            # "neighbour": ast.literal_eval(df["neighbour"][idx])
         }
+        # Add optional fields if they exist in the DataFrame
+        if "node_id" in df.columns:
+            item["node_id"] = df["node_id"][idx]
+        if "neighbour" in df.columns:
+            item["neighbour"] = ast.literal_eval(df["neighbour"][idx])
+
         list_data_dict.append(item)
 
     return list_data_dict
