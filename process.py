@@ -4,6 +4,7 @@ import json
 import argparse
 import numpy as np
 import os
+from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # 创建解析器
@@ -49,7 +50,7 @@ tokenized_lengths = []
 
 # 遍历每一行数据，生成适合生成式文本分类的数据格式
 # 构建每个样本的 prompt，并将其添加到新数据结构中
-for _, row in df.iterrows():
+for _, row in tqdm(df.iterrows(), total=df.shape[0], desc="Processing dataset"):  # 使用tqdm包装iterrows
     text = row[args.text_column]
     correct_category = row[args.category_column]
 
