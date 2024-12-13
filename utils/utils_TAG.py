@@ -58,8 +58,8 @@ def load_csv(file_path, num_samples):
             "raw_text": df["raw_text"][idx],
             "correct_category": df["correct_category"][idx],
             "false_categories": ast.literal_eval(df["false_categories"][idx]),
-            "node_id": df["node_id"][idx],
-            "neighbour": ast.literal_eval(df["neighbour"][idx])
+            # "node_id": df["node_id"][idx],
+            # "neighbour": ast.literal_eval(df["neighbour"][idx])
         }
         list_data_dict.append(item)
 
