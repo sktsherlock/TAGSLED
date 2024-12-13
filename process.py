@@ -45,7 +45,7 @@ categories_str = ", ".join(categories)
 
 # 创建新的数据框架用于存储每个样本的相关信息
 new_data = []
-prompts = []
+tokenized_lengths = []
 
 # 遍历每一行数据，生成适合生成式文本分类的数据格式
 # 构建每个样本的 prompt，并将其添加到新数据结构中
@@ -64,7 +64,9 @@ for _, row in df.iterrows():
     This item likely belongs to:
     """
 
-    prompts.append(prompt)
+    # 分词并统计长度
+    tokenized_length = len(tokenizer.encode(prompt, add_special_tokens=False))
+    tokenized_lengths.append(tokenized_length)
 
     # 将新的信息添加到数据集
     new_entry = {
