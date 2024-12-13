@@ -62,7 +62,7 @@ for _, row in tqdm(df.iterrows(), total=df.shape[0], desc="Processing dataset"):
     Your task is to classify the given text into one of the following categories: {categories_str}. Please read the description below and choose the correct category based on the content.
     The description and title of the item are as follows:
     {text}
-    This item likely belongs to:
+    Please think step by step. This item likely belongs to:
     """
 
     # 分词并统计长度
