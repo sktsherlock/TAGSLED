@@ -2,6 +2,7 @@ import pandas as pd
 import random
 import json
 import argparse
+import os
 
 # 创建解析器
 parser = argparse.ArgumentParser(description="Process dataset for LLM.")
