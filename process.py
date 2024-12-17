@@ -17,6 +17,8 @@ parser.add_argument('--node_id_column', type=str, required=False, default='node_
                     help="Name of the column containing the node ID.")
 parser.add_argument('--neighbour_column', type=str, required=False, default='neighbour',
                     help="Name of the column containing neighbours.")
+parser.add_argument('--false_category_ratio', type=float, default=0.5,
+                    help="Ratio of false categories to sample (0.0 - 1.0).")  # 添加新的超参数
 
 # 解析参数
 args = parser.parse_args()
@@ -55,7 +57,14 @@ for _, row in tqdm(df.iterrows(), total=df.shape[0], desc="Processing dataset"):
     correct_category = row[args.category_column]
 
     # 从数据集中获取 false_categories（即不是该文本的类别）
-    false_categories = [cat for cat in categories if cat != correct_category]
+    # 从数据集中获取 false_categories（即不是该文本的类别）
+    other_categories = [cat for cat in categories if cat != correct_category]
+    # false_categories = [cat for cat in categories if cat != correct_category]
+
+
+    # 随机采样 false_categories，采样比例由参数控制
+    sample_size = max(1, int(len(other_categories) * args.false_category_ratio))  # 至少采样1个
+    false_categories = random.sample(other_categories, sample_size)
 
     # 构建任务相关的 prompt
     prompt = f"""
